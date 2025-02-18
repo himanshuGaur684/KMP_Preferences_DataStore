@@ -2,50 +2,48 @@ import SwiftUI
 import shared
 
 struct ContentView: View {
-    
-    
-    let cacheMangaer = PrefCacheManager(dataStore: IosDataStore.shared.getCreateDataStore())
-    
-	let greet = Greeting().greet()
 
+    let storeManager = StoreManager(store: PreDataStoreForIos.shared.getDataStore())
+    
     
     @State private var key = ""
     @State private var value = ""
+    @State private var savedValue  = ""
     
-    @State private var savedValue = ""
-    
-    
+	let greet = Greeting().greet()
+
 	var body: some View {
         VStack{
-            
+
             Text(savedValue)
                 .font(.system(size: 15))
-                .padding(.vertical,10)
             
-            TextField("Key",text: $key)
-                .textFieldStyle(.roundedBorder)
-                .padding(.vertical,8)
+            TextField("enter key...", text: $key)
+                .textFieldStyle(.roundedBorder)  
             
-            TextField("Value", text: $value)
+            TextField("enter value...", text: $value)
                 .textFieldStyle(.roundedBorder)
-                .padding(.vertical,8)
             
             Button(action: {
                 Task{
                     do{
-                        try await cacheMangaer.save(key: key, value: value)
+                        try await storeManager.save(key: key, value: value)
                     }catch{
                         print(error)
                     }
                 }
             }, label: {
-                    Text("Save")
+                Text("Save")
             })
             
             Button(action: {
                 Task{
                     do{
-                        self.savedValue =  try await cacheMangaer.getValue(key: key)
+                        let savedInfo =  try await storeManager.getValue(key: key)
+                        DispatchQueue.main.async{
+                            savedValue = savedInfo
+                        }
+                       
                     }catch{
                         print(error)
                     }
@@ -55,7 +53,8 @@ struct ContentView: View {
             })
             
             
-        }.padding(12)
+        }
+        .padding(12)
 	}
 }
 
